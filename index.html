@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Voice Search Web App</title>
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #101820;
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    .container {
+        text-align: center;
+        width: 85%;
+        max-width: 550px;
+    }
+
+    #searchBox {
+        width: 100%;
+        padding: 14px 18px;
+        font-size: 20px;
+        border-radius: 8px;
+        border: none;
+        outline: none;
+        text-align: center;
+    }
+
+    #micBtn {
+        background: #222;
+        border: none;
+        padding: 18px 24px;
+        border-radius: 50%;
+        cursor: pointer;
+        margin-top: 20px;
+        transition: 0.3s;
+        font-size: 26px;
+    }
+
+    /* 🔥 Mic glowing / pulsing animation */
+    #micBtn.listening {
+        animation: pulseGlow 1.2s infinite;
+        background: #ff3d3d;
+    }
+
+    @keyframes pulseGlow {
+        0% { box-shadow: 0 0 6px rgba(255, 60, 60, 0.6); }
+        50% { box-shadow: 0 0 18px rgba(255, 60, 60, 1); }
+        100% { box-shadow: 0 0 6px rgba(255, 60, 60, 0.6); }
+    }
+
+    #status {
+        margin-top: 18px;
+        font-size: 17px;
+        opacity: 0.8;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <input id="searchBox" type="text" placeholder="Say something...">
+    <br>
+    <button id="micBtn"><span>🎤</span></button>
+    <div id="status">Click the mic & speak</div>
+</div>
+
+<script>
+const micBtn = document.getElementById("micBtn");
+const searchBox = document.getElementById("searchBox");
+const status = document.getElementById("status");
+
+let recognition;
+
+if ("webkitSpeechRecognition" in window) {
+    recognition = new webkitSpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = false;
+    recognition.lang = "en-US";
+
+    micBtn.addEventListener("click", () => {
+        if (micBtn.classList.contains("listening")) {
+            recognition.stop();
+            micBtn.classList.remove("listening");
+            status.innerText = "Stopped listening";
+        } else {
+            recognition.start();
+            micBtn.classList.add("listening");
+            status.innerText = "Listening...";
+        }
+    });
+
+    recognition.onresult = (event) => {
+        const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
+        console.log("Heard:", transcript);
+
+        // Auto-stop voice command
+        if (transcript.includes("stop listening") || transcript.includes("stop")) {
+            recognition.stop();
+            micBtn.classList.remove("listening");
+            status.innerText = "Stopped by voice command";
+            return;
+        }
+
+        // Set input box value
+        searchBox.value = transcript;
+    };
+
+    recognition.onend = () => {
+        micBtn.classList.remove("listening");
+        status.innerText = "Click the mic & speak";
+    };
+} else {
+    alert("Speech Recognition not supported in this browser");
+}
+</script>
+
+</body>
+</html>
